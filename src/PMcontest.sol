@@ -11,62 +11,7 @@ import {VRFV2WrapperConsumerBase} from "node_modules/@chainlink/contracts/src/v0
 import {VRFv2DirectFundingConsumer} from "./VRF2.sol";
 
 import {IRewardRouter} from "./IRewardRouter.sol";
-
-interface IContest {
-    // Winner address being set by Owner
-    function winnerAddress() external returns (address);
-
-    // Being set by owner via PM_redeemAward()
-    function winnerReward() external returns (uint256);
-
-    // After the contest is deployed, there's a window of staking QLP
-    // A immutable state being set via constructor
-    function depositDeadline() external returns (uint256);
-
-    // After this uint256, owner will call handleRewards function of RewardRouter
-    // Only after this uint256, users can start withdrawing
-    function withdrawStart() external returns (uint256);
-
-    // User can't withdraw before owner redeems rewards
-    function canWithdraw() external returns (bool);
-
-    // Stores address of QLP token
-    function fsQLPaddress() external returns (address);
-
-    // Non reentrant public function
-    // Checks whether the depositDeadline isn't passed
-    // Checks whetether amount!=0, revert PM_ZeroAmount()
-    // Call IERC20().transferFrom()
-    //
-    // Mint him Representative Tokens
-    function depositQLP(uint256 amount) external returns(uint256);
-
-    // Non reentrant public function
-    // Checks canWithdraw boolean value first
-    // Checks mapping to be a non-zero value
-    // Fetches amount of representative token msg.sender has == a1
-    // Transfers (a1/totalSupply) * totalQLP to msg.sender
-    // If msg.sender == winnerAddress, IERC20 transfer him the WETH reward
-    // NEED AUDITING ON ROUNDING ERROR TRANSFERS SHIT
-    function reclaimQLP() external returns(uint256);
-
-    // onlyOwner function
-    // Checks uint256 withdrawStart
-    // Caches balanceOf this contract's QLP token in totalQLP(storage)
-    // Calls handleRewards of RewardRouter
-    // Stores winning WETH amount returned from wethamount handleRewards in Contract Storage
-    // Sets canWithdraw to true
-    function PM_redeemReward() external returns (uint256);
-
-    // onlyOwner function
-    // Checks uint256 withdrawStart
-    // Calls before calling PM_redeemAward() function
-    // Gets a random number from Chainlink VRF
-    // We store index to address in a mapping m1
-    // Sets the m1[randomNumber] to winner
-    // Flip winnerAddress to this address
-    function setWinner() external returns (address);
-}
+import {IContest} from "./IContest.sol";
 
 // Chainlink implements ownership modules in VRFv2DirectFundingConsumer
 contract PMcontest is IContest, ReentrancyGuard, VRFv2DirectFundingConsumer {
