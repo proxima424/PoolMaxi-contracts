@@ -26,6 +26,18 @@ The objective is to create a "no-loss-lottery" environment where participants ca
 
 Until next time, [@proxima424](https://twitter.com/proxima424)
 
+## TODO
+
+-> Inside src folder, make new folders namely Mainnet, Arbitrum, Avalanche, zkevmPolygon
+-> Inside mainnet : Form these folders -> swellNetwork
+-> Inside arbitrum : Form these folders -> GLP
+-> Inside zkevmPolygon : Form these folders -> QLP
+
+-> In Contest.sol, remove all hardcoded addresses and take them as params in constructor
+-> Remove QLP from all function name. We need to integrate all sorts of yield sources not just QLP.
+   After the contract is generalized, copy paste them in Mainnet, Arbitrum and Avalanche folders.
+-> For polygon zkevm we need another random number source mp API3 smth. Integrate API3 ( I'll help in this )
+
 
 
 
