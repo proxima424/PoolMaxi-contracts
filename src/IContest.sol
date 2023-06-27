@@ -8,7 +8,7 @@ interface IContest {
     // Being set by owner via PM_redeemAward()
     function winnerReward() external returns (uint256);
 
-    // After the contest is deployed, there's a window of staking QLP
+    // After the contest is deployed, there's a window of staking pool tokens 
     // A immutable state being set via constructor
     function depositDeadline() external returns (uint256);
 
@@ -19,8 +19,8 @@ interface IContest {
     // User can't withdraw before owner redeems rewards
     function canWithdraw() external returns (bool);
 
-    // Stores address of QLP token
-    function fsQLPaddress() external returns (address);
+    // Stores address of pool token
+    function poolTokenaddress() external returns (address);
 
     // Non reentrant public function
     // Checks whether the depositDeadline isn't passed
@@ -28,20 +28,20 @@ interface IContest {
     // Call IERC20().transferFrom()
     //
     // Mint him Representative Tokens
-    function depositQLP(uint256 amount) external returns(uint256);
+    function depositPoolTokens(uint256 amount) external returns(uint256);
 
     // Non reentrant public function
     // Checks canWithdraw boolean value first
     // Checks mapping to be a non-zero value
     // Fetches amount of representative token msg.sender has == a1
-    // Transfers (a1/totalSupply) * totalQLP to msg.sender
+    // Transfers (a1/totalSupply) * totalPoolTokens to msg.sender
     // If msg.sender == winnerAddress, IERC20 transfer him the WETH reward
     // NEED AUDITING ON ROUNDING ERROR TRANSFERS SHIT
-    function reclaimQLP() external returns(uint256);
+    function reclaimPoolTokens() external returns(uint256);
 
     // onlyOwner function
     // Checks uint256 withdrawStart
-    // Caches balanceOf this contract's QLP token in totalQLP(storage)
+    // Caches balanceOf this contract's pool token in totalPoolTokens(storage)
     // Calls handleRewards of RewardRouter
     // Stores winning WETH amount returned from wethamount handleRewards in Contract Storage
     // Sets canWithdraw to true
