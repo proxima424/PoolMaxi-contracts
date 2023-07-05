@@ -2,8 +2,11 @@
 pragma solidity ^0.8.15;
 
 interface IContest {
-    // Winner address being set by Owner
-    function winnerAddress() external returns (address);
+   
+    /// @notice Function to set the address of the winner
+    /// @dev This is only set by the owner
+    /// @return Address of the winner
+    function giveWinnerIndex() external returns (uint);
 
     // Being set by owner via PM_redeemAward()
     function winnerReward() external returns (uint256);
@@ -19,16 +22,15 @@ interface IContest {
     // User can't withdraw before owner redeems rewards
     function canWithdraw() external returns (bool);
 
-    // Stores address of QLP token
+    /// @notice Gives the address of fsQLP ERC20 token
+    /// @return Address of fsQLP ERC20 token
     function fsQLPaddress() external returns (address);
 
-    // Non reentrant public function
-    // Checks whether the depositDeadline isn't passed
-    // Checks whetether amount!=0, revert PM_ZeroAmount()
-    // Call IERC20().transferFrom()
-    //
-    // Mint him Representative Tokens
-    function depositQLP(uint256 amount) external returns(uint256);
+    /// @notice Function to deposit the QLP token and mint the Representative Tokens
+    /// @dev Only when depositDeadline isn't passed
+    /// @dev Also checks whetether amount is 0
+    /// @return Index of the user that is 
+    function depositQLP(uint256 amount) external returns(uint, uint);
 
     // Non reentrant public function
     // Checks canWithdraw boolean value first
@@ -54,5 +56,5 @@ interface IContest {
     // We store index to address in a mapping m1
     // Sets the m1[randomNumber] to winner
     // Flip winnerAddress to this address
-    function setWinner() external returns (address);
+    function setWinner() external returns (uint);
 }
