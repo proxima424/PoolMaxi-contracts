@@ -32,13 +32,13 @@ contract PMcontest is IContest, ReentrancyGuard, VRFv2DirectFundingConsumer {
 
     uint256 public immutable override depositDeadline;
     uint256 public immutable override withdrawStart;
-    address public immutable override fsQLPaddress;
+    address public immutable override poolTokenaddress;
     address public immutable rewardRouter;
     address public immutable wethAddress;
 
     bool public canWithdraw = false;
 
-    uint256 public totalQLP;
+    uint256 public totalPoolTokens;
     uint256 public override winnerReward;
     uint256 public chainlinkRandomNumber;
     // address public override winnerAddress;
@@ -49,13 +49,13 @@ contract PMcontest is IContest, ReentrancyGuard, VRFv2DirectFundingConsumer {
     //////////////////////////////////////////////////////////////*/
     constructor(
         uint256 _depositDeadline,
-        address _fsQLPaddress,              // should be made as constant
+        address _poolTokenaddress,
         uint256 _withdrawStart,
         address _rewardRouter,
         address _wethAddress
     ) VRFv2DirectFundingConsumer() {
         depositDeadline = _depositDeadline;
-        fsQLPaddress = _fsQLPaddress;
+        poolTokenaddress = _poolTokenaddress;
         withdrawStart = _withdrawStart;
         rewardRouter = _rewardRouter;       // also can be made as constant
         wethAddress = _wethAddress;
@@ -80,8 +80,8 @@ contract PMcontest is IContest, ReentrancyGuard, VRFv2DirectFundingConsumer {
                               USER OPERATIONS
     //////////////////////////////////////////////////////////////*/
 
-    // User needs to approve this contract of QLP token first
-    function depositQLP(uint256 amount)
+    // User needs to approve this contract of pool token first
+    function depositpoolTokens(uint256 amount)
         external
         override
         nonReentrant
@@ -95,22 +95,22 @@ contract PMcontest is IContest, ReentrancyGuard, VRFv2DirectFundingConsumer {
             revert PM_ZeroAmount(msg.sender);
         }
 
-        bool success = IERC20(fsQLPaddress).transferFrom(msg.sender, address(this), amount);            // we should check whether the token returns a false or nothing
+        bool success = IERC20(poolTokenaddress).transferFrom(msg.sender, address(this), amount);
         if (!success) {
             revert PM_DepositFailed(msg.sender);
         } else {
-            totalQLP += amount;
-            return _mint(msg.sender, amount);
+            totalpoolTokens += amount;
+            return mint(msg.sender, amount);
         }
     }
 
-    function reclaimQLP() public nonReentrant returns (uint256 amount) {
+    function reclaimpoolTokens() public nonReentrant returns (uint256 amount) {
         require(canWithdraw);
         if (block.timestamp < withdrawStart) {
             revert PM_CanNotWithdraw(msg.sender, block.timestamp);
         }
         if (hasDeposited[msg.sender]) {
-            bool success = IERC20(fsQLPaddress).transfer(msg.sender, userToDepositAmount[msg.sender]);
+            bool success = IERC20(poolTokenaddress).transfer(msg.sender, userToDepositAmount[msg.sender]);
             if (!success) {
                 revert PM_FailedToWithdraw(msg.sender);
             }

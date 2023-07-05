@@ -2,11 +2,8 @@
 pragma solidity ^0.8.15;
 
 interface IContest {
-   
-    /// @notice Function to set the address of the winner
-    /// @dev This is only set by the owner
-    /// @return Address of the winner
-    function giveWinnerIndex() external returns (uint);
+    // Winner address being set by Owner
+    function winnerAddress() external returns (address);
 
     // Being set by owner via PM_redeemAward()
     function winnerReward() external returns (uint256);
@@ -33,7 +30,6 @@ interface IContest {
     // Mint him Representative Tokens
     function depositPoolTokens(uint256 amount) external returns(uint256);
 
-
     // Non reentrant public function
     // Checks canWithdraw boolean value first
     // Checks mapping to be a non-zero value
@@ -58,7 +54,5 @@ interface IContest {
     // We store index to address in a mapping m1
     // Sets the m1[randomNumber] to winner
     // Flip winnerAddress to this address
-
-    function setWinner() external returns (uint);
-
+    function setWinner() external returns (address);
 }

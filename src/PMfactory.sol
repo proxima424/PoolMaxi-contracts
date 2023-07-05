@@ -59,12 +59,12 @@ contract PMfactory {
 
     function deployNewContest(
         uint256 _depositDeadline,
-        address _fsQLPaddress,
+        address _poolTokenaddress,
         uint256 _withdrawStart,
         address _rewardRouter,
         address _wethAddress
     ) external onlyOwner returns (address newContest,uint256 id) {
-        newContest = address(new PMcontest(_depositDeadline,_fsQLPaddress,_withdrawStart,_rewardRouter,_wethAddress));
+        newContest = address(new PMcontest(_depositDeadline,_poolTokenaddress,_withdrawStart,_rewardRouter,_wethAddress));
         id = contestCount++;
         isContestRunning[id] = true;
         contestAddress[id] = newContest;
