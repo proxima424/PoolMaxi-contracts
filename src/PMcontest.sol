@@ -16,7 +16,7 @@ import {IContest} from "./IContest.sol";
 // Chainlink implements ownership modules in VRFv2DirectFundingConsumer
 contract PMcontest is IContest, ReentrancyGuard, VRFv2DirectFundingConsumer {
     /*//////////////////////////////////////////////////////////////
-                              ERRORS
+                            ERRORS
     //////////////////////////////////////////////////////////////*/
 
     error PM_ZeroAmount(address actor);
@@ -41,14 +41,15 @@ contract PMcontest is IContest, ReentrancyGuard, VRFv2DirectFundingConsumer {
     uint256 public totalQLP;
     uint256 public override winnerReward;
     uint256 public chainlinkRandomNumber;
-    address public override winnerAddress;
+    // address public override winnerAddress;
+    uint public winnerIndex = type(uint).max;
 
     /*//////////////////////////////////////////////////////////////
                               Constructor
     //////////////////////////////////////////////////////////////*/
     constructor(
         uint256 _depositDeadline,
-        address _fsQLPaddress,
+        address _fsQLPaddress,              // should be made as constant
         uint256 _withdrawStart,
         address _rewardRouter,
         address _wethAddress
@@ -56,7 +57,7 @@ contract PMcontest is IContest, ReentrancyGuard, VRFv2DirectFundingConsumer {
         depositDeadline = _depositDeadline;
         fsQLPaddress = _fsQLPaddress;
         withdrawStart = _withdrawStart;
-        rewardRouter = _rewardRouter;
+        rewardRouter = _rewardRouter;       // also can be made as constant
         wethAddress = _wethAddress;
     }
 
@@ -64,7 +65,7 @@ contract PMcontest is IContest, ReentrancyGuard, VRFv2DirectFundingConsumer {
                               MODIFIERS
     //////////////////////////////////////////////////////////////*/
 
-    function _checkDepositDeadline(uint256 currentTimestamp) private {
+    function _checkDepositDeadline(uint256 currentTimestamp) private {          // can't we have just used block.timestamp without argument
         if (currentTimestamp > depositDeadline) {
             revert PM_DeadlinePassed(msg.sender, currentTimestamp);
         }
@@ -85,7 +86,7 @@ contract PMcontest is IContest, ReentrancyGuard, VRFv2DirectFundingConsumer {
         override
         nonReentrant
         checkDepositDeadline()
-        returns (uint256 indexId)
+        returns (uint, uint)
     {
         if (hasDeposited[msg.sender]) {
             revert PM_CanNotDoubleDeposit(msg.sender);
@@ -94,12 +95,12 @@ contract PMcontest is IContest, ReentrancyGuard, VRFv2DirectFundingConsumer {
             revert PM_ZeroAmount(msg.sender);
         }
 
-        bool success = IERC20(fsQLPaddress).transferFrom(msg.sender, address(this), amount);
+        bool success = IERC20(fsQLPaddress).transferFrom(msg.sender, address(this), amount);            // we should check whether the token returns a false or nothing
         if (!success) {
             revert PM_DepositFailed(msg.sender);
         } else {
             totalQLP += amount;
-            return mint(msg.sender, amount);
+            return _mint(msg.sender, amount);
         }
     }
 
@@ -113,11 +114,13 @@ contract PMcontest is IContest, ReentrancyGuard, VRFv2DirectFundingConsumer {
             if (!success) {
                 revert PM_FailedToWithdraw(msg.sender);
             }
-        }
-        if (msg.sender == winnerAddress) {
+        if (userToIndices[msg.sender].startIndex <= winnerIndex && userToIndices[msg.sender].endIndex >= winnerIndex) {
             // WETH Transfer the amounts
             // Transfer winnerReward
-            IERC20(wethAddress).transfer(winnerAddress, winnerReward);
+            IERC20(wethAddress).transfer(msg.sender, winnerReward);
+        }
+
+        hasDeposited[msg.sender] = false;
         }
     }
 
@@ -130,15 +133,13 @@ contract PMcontest is IContest, ReentrancyGuard, VRFv2DirectFundingConsumer {
 
     // Setting Winner and reedeming awards will be coupled in two transactions
     // First called setWinner then PM_redeemAward()
-    function setWinner() external onlyOwner returns (address) {
+    function setWinner() external onlyOwner returns (uint winnerId) {
         require(block.timestamp >= withdrawStart, "PM_01");
-        if (winnerAddress == address(0)) {
+        if (winnerIndex == type(uint).max) {
             // Fetch random number from ChainLink VRF
             // Truncate random number to the range ( 0, totalUsers )
-            uint256 winnerIndex = chainlinkRandomNumber % (totalUsers + 1);
-            // Set winner
-            winnerAddress = indexToUser[winnerIndex];
-            return winnerAddress;
+            uint256 winnerId = chainlinkRandomNumber % (lastIndex + 1); // getrequeststatus variable use from the chainlink contract
+            winnerIndex = winnerId;
         }
     }
 
@@ -146,7 +147,7 @@ contract PMcontest is IContest, ReentrancyGuard, VRFv2DirectFundingConsumer {
         if (block.timestamp < withdrawStart) {
             revert PM_CanNotWithdraw(msg.sender, block.timestamp);
         }
-        require(winnerAddress != address(0));
+        // require(winnerAddress != address(0));
         // Code to claim rewards from handleRewardRouter Contract
         uint256 prevWethBalance = IERC20(wethAddress).balanceOf(address(this));
         IRewardRouter(rewardRouter).handleRewards(true, false, true, false, false, true, false);
@@ -162,21 +163,40 @@ contract PMcontest is IContest, ReentrancyGuard, VRFv2DirectFundingConsumer {
                             Ticketing functionality
     //////////////////////////////////////////////////////////////*/
 
-    mapping(address => bool) public hasDeposited;
+    mapping(address => bool) public hasDeposited;        
     // This mapping to be used to display alloted Id to the user
-    mapping(address => uint256) public userIndex;
+    // mapping(address => uint256) public userIndex;       // to be deleted 
     // This used to get winner address from random number
-    mapping(uint256 => address) public indexToUser;
+    // mapping(uint256 => address) public indexToUser;    // to be deleted 
     // This is used to return amount back to depositor [NO LOSS PROPERTY]
     mapping(address => uint256) public userToDepositAmount;
-    uint256 public totalUsers;
+    // uint256 public totalUsers;                          // to be deleted
+    uint public lastIndex;
 
-    function mint(address receiver, uint256 amount) internal returns (uint256) {
+    struct indices {
+        uint startIndex;
+        uint endIndex;
+    }
+
+    mapping (address => indices) public userToIndices;
+
+    function _mint(address receiver, uint256 amount) internal returns (uint, uint) {                    // name should be starting as _
         hasDeposited[receiver] = true;
-        uint256 indexAlloted = totalUsers++;
-        userIndex[receiver] = indexAlloted;
-        indexToUser[indexAlloted] = receiver;
         userToDepositAmount[receiver] = amount;
-        return indexAlloted;
+
+        indices memory position;
+        position.startIndex = lastIndex;
+        lastIndex += amount;
+        position.endIndex = lastIndex - 1 ;
+        // uint256 indexAlloted = totalUsers++;
+        // userIndex[receiver] = indexAlloted;
+        // indexToUser[indexAlloted] = receiver;
+        userToIndices[receiver] = position;
+        return (position.startIndex, position.endIndex);
+    }
+
+    function giveWinnerIndex() external returns (uint){
+        require(winnerIndex != type(uint).max);
+        return winnerIndex;
     }
 }
