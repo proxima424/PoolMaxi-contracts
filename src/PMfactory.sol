@@ -46,7 +46,7 @@ contract PMfactory {
                               OWNER FUNCTIONS
     //////////////////////////////////////////////////////////////*/
 
-    function changeOwner(address _address) external onlyOwner {
+    function changeOwner(address _address) external onlyOwner {                 
         if (_address == address(0)) {
             revert PM_zeroAddress();
         }
@@ -70,16 +70,16 @@ contract PMfactory {
         contestAddress[id] = newContest;
     }
 
-    function contestSetWinner(uint256 _id) onlyOwner external returns(address winner){
+    function contestSetWinner(uint256 _id) onlyOwner external returns(uint winner){                  // to be changed 
         if(contestAddress[_id]==address(0)){
             revert PM_contestDoesNotExist(_id);
         }
 
         winner = IContest(contestAddress[_id]).setWinner();
 
-        if(winner == address(0)){
-            revert PM_settingWinnerFailed(block.timestamp);
-        }
+        // if(winner == address(0)){
+        //     revert PM_settingWinnerFailed(block.timestamp);
+        // }
 
 
     }
@@ -92,13 +92,7 @@ contract PMfactory {
         isContestRunning[_id] = false;
     }
 
-    function getWinnerAddress(uint256 _id) external returns(address){
-        return IContest(contestAddress[_id]).winnerAddress();
+    function getWinnerIndex(uint256 _id) external returns(uint){           // also to be changed
+        return IContest(contestAddress[_id]).giveWinnerIndex();
     }
-
-
-
-
-
-
 }
