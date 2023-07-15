@@ -34,6 +34,7 @@ contract GLP is Test{
         factory = new PMFactory();
     }
 
+    // testing of the working of the GLP tokens 
     function testMintingGLP() public {
         vm.selectFork(arbitrumFork);
         vm.rollFork(1114e5);
@@ -45,7 +46,7 @@ contract GLP is Test{
         // checking the balance of stakedGlp
         uint bal = glp.balanceOf(msg.sender);
         console.log(bal);
-        // should revert just after minting as there is 15 minutes cooldown in the protocol
+        // should revert the transfer just after minting as there is 15 minutes cooldown in the protocol
         vm.expectRevert(glp.transfer(two, bal));
         // travelling through blocks in future of that previous block
         vm.rollfork(11141e4);
@@ -55,6 +56,7 @@ contract GLP is Test{
         vm.stopPrank();
     }
 
+    // making a contest and three participants participating in that contest
     function testContestMaking() public {
         vm.selectFork(arbitrum);
         vm.rollFork(1114e5);
