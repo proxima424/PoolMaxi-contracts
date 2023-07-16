@@ -31,7 +31,7 @@ interface IContest {
     // Call IERC20().transferFrom()
     //
     // Mint him Representative Tokens
-    function depositPoolTokens(uint256 amount) external returns(uint256);
+    function depositPoolTokens(uint256 amount) external returns(uint, uint);
 
 
     // Non reentrant public function

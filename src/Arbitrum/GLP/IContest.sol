@@ -2,8 +2,11 @@
 pragma solidity ^0.8.15;
 
 interface IContest {
-    // Winner address being set by Owner
-    function winnerAddress() external returns (address);
+   
+    /// @notice Function to set the address of the winner
+    /// @dev This is only set by the owner
+    /// @return Address of the winner
+    function giveWinnerIndex() external returns (uint);
 
     // Being set by owner via PM_redeemAward()
     function winnerReward() external returns (uint256);
@@ -20,7 +23,7 @@ interface IContest {
     function canWithdraw() external returns (bool);
 
     // Stores address of pool token
-    function poolTokenaddress() external returns (address);
+    function GLPaddress() external returns (address);
 
     // Non reentrant public function
     // Checks whether the depositDeadline isn't passed
@@ -28,7 +31,8 @@ interface IContest {
     // Call IERC20().transferFrom()
     //
     // Mint him Representative Tokens
-    function depositPoolTokens(uint256 amount) external returns(uint256);
+    function depositGLP(uint256 amount) external returns(uint, uint);
+
 
     // Non reentrant public function
     // Checks canWithdraw boolean value first
@@ -37,7 +41,7 @@ interface IContest {
     // Transfers (a1/totalSupply) * totalPoolTokens to msg.sender
     // If msg.sender == winnerAddress, IERC20 transfer him the WETH reward
     // NEED AUDITING ON ROUNDING ERROR TRANSFERS SHIT
-    function reclaimPoolTokens() external returns(uint256);
+    function reclaimGLP() external returns(uint256);
 
     // onlyOwner function
     // Checks uint256 withdrawStart
@@ -54,5 +58,7 @@ interface IContest {
     // We store index to address in a mapping m1
     // Sets the m1[randomNumber] to winner
     // Flip winnerAddress to this address
-    function setWinner() external returns (address);
+
+    function setWinner() external returns (uint);
+
 }

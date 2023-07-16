@@ -1,13 +1,13 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.15;
 
-import {IERC20} from "../lib/openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
-import {ERC20} from "../lib/openzeppelin-contracts/contracts/token/ERC20/ERC20.sol";
-import {ReentrancyGuard} from "../lib/openzeppelin-contracts/contracts/security/ReentrancyGuard.sol";
-import {Ownable} from "../lib/openzeppelin-contracts/contracts/access/Ownable.sol";
+import {IERC20} from "@openzeppelin/token/ERC20/IERC20.sol";
+import {ERC20} from "@openzeppelin/token/ERC20/ERC20.sol";
+import {ReentrancyGuard} from "@openzeppelin/security/ReentrancyGuard.sol";
+import {Ownable} from "@openzeppelin/access/Ownable.sol";
 
-import {ConfirmedOwner} from "../node_modules/@chainlink/contracts/src/v0.8/ConfirmedOwner.sol";
-import {VRFV2WrapperConsumerBase} from "node_modules/@chainlink/contracts/src/v0.8/VRFV2WrapperConsumerBase.sol";
+import {ConfirmedOwner} from "@chainlink/src/v0.8/ConfirmedOwner.sol";
+import {VRFV2WrapperConsumerBase} from "@chainlink/src/v0.8/VRFV2WrapperConsumerBase.sol";
 import {VRFv2DirectFundingConsumer} from "./VRF2.sol";
 
 import {IRewardRouter} from "./IRewardRouter.sol";
@@ -81,7 +81,7 @@ contract PMcontest is IContest, ReentrancyGuard, VRFv2DirectFundingConsumer {
     //////////////////////////////////////////////////////////////*/
 
     // User needs to approve this contract of pool token first
-    function depositpoolTokens(uint256 amount)
+    function depositPoolTokens(uint256 amount)
         external
         override
         nonReentrant
@@ -99,12 +99,12 @@ contract PMcontest is IContest, ReentrancyGuard, VRFv2DirectFundingConsumer {
         if (!success) {
             revert PM_DepositFailed(msg.sender);
         } else {
-            totalpoolTokens += amount;
-            return mint(msg.sender, amount);
+            totalPoolTokens += amount;
+            return _mint(msg.sender, amount);
         }
     }
 
-    function reclaimpoolTokens() public nonReentrant returns (uint256 amount) {
+    function reclaimPoolTokens() public nonReentrant returns (uint256 amount) {
         require(canWithdraw);
         if (block.timestamp < withdrawStart) {
             revert PM_CanNotWithdraw(msg.sender, block.timestamp);
@@ -138,7 +138,7 @@ contract PMcontest is IContest, ReentrancyGuard, VRFv2DirectFundingConsumer {
         if (winnerIndex == type(uint).max) {
             // Fetch random number from ChainLink VRF
             // Truncate random number to the range ( 0, totalUsers )
-            uint256 winnerId = chainlinkRandomNumber % (lastIndex + 1); // getrequeststatus variable use from the chainlink contract
+            winnerId = chainlinkRandomNumber % (lastIndex + 1); // getrequeststatus variable use from the chainlink contract
             winnerIndex = winnerId;
         }
     }
